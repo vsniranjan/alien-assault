@@ -346,7 +346,7 @@ def main():
             handle_movement(spaceship, keys_pressed)
 
             if len(enemy_ship_list) < ENEMY_SHIPS_NUM:
-                enemy_ship = EnemyShip(random.randint(0, WIDTH), random.randrange(0, 600, 5), SPACESHIP_WIDTH,
+                enemy_ship = EnemyShip(random.randint(0, WIDTH), random.randrange(0, 450, 5), SPACESHIP_WIDTH,
                                        SPACESHIP_HEIGHT)
                 enemy_ship_list.append(enemy_ship)
 
