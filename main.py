@@ -7,13 +7,13 @@ import datetime
 pygame.font.init()
 pygame.mixer.init()
 
-WIDTH, HEIGHT = 800, 950
+WIDTH, HEIGHT = 700, 800
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("ALIEN ASSAULT")
 
 VEL = 10
 FPS = 60
-SPACESHIP_WIDTH, SPACESHIP_HEIGHT = 100, 60
+SPACESHIP_WIDTH, SPACESHIP_HEIGHT = 90, 54
 BULLET_VEL = 5
 MAX_BULLETS = 3
 ENEMY_SHIP_VEL = 5
@@ -24,17 +24,21 @@ YELLOW = (255, 255, 0)
 WHITE = (255, 255, 255)
 BLACK = (0,0,0)
 
-SCORE_FONT = pygame.font.Font(os.path.join('assets', 'pixel_font.ttf'), 40)
-GAME_OVER_FONT = pygame.font.Font(os.path.join('assets', 'pixel_font.ttf'), 160)
-FINAL_SCORE_FONT = pygame.font.Font(os.path.join('assets', 'pixel_font.ttf'), 125)
-GAME_NAME_FONT = pygame.font.Font(os.path.join('assets', 'pixel_font.ttf'), 150)
-PLAY_TEXT_FONT = pygame.font.Font(os.path.join('assets', 'pixel_font.ttf'), 140)
-ENTER_NAME_FONT = pygame.font.Font(os.path.join('assets', 'pixel_font.ttf'), 80)
-LEADERBOARD_FONT = pygame.font.Font(os.path.join('assets', 'pixel_font.ttf'), 120)
+FONT = 'pixel_font.ttf'
+SCORE_FONT = pygame.font.Font(os.path.join('assets', FONT), 40)
+GAME_OVER_FONT = pygame.font.Font(os.path.join('assets', FONT), 140)
+FINAL_SCORE_FONT = pygame.font.Font(os.path.join('assets', FONT), 125)
+GAME_NAME_FONT = pygame.font.Font(os.path.join('assets', FONT), 140)
+PLAY_TEXT_FONT = pygame.font.Font(os.path.join('assets', FONT), 110)
+ENTER_NAME_FONT = pygame.font.Font(os.path.join('assets', FONT), 80)
+LEADERBOARD_FONT = pygame.font.Font(os.path.join('assets', FONT), 100)
+BACK_TEXT_FONT = pygame.font.Font(os.path.join('assets', FONT), 90)
+QUIT_FONT = pygame.font.Font(os.path.join('assets', FONT), 110)
 
 BULLET_HIT_SOUND = pygame.mixer.Sound(os.path.join('assets', 'hit_sound.mp3'))
 BULLET_FIRE_SOUND = pygame.mixer.Sound(os.path.join('assets', 'shoot_sound.mp3'))
 GAME_OVER_SOUND = pygame.mixer.Sound(os.path.join('assets', 'game_over.mp3'))
+CLICK_SOUND = pygame.mixer.Sound(os.path.join('assets', 'click_sound.mp3'))
 
 SPACESHIP_IMAGE = pygame.image.load(os.path.join('assets', 'spaceship.png'))
 BASE_LINE_IMAGE = pygame.image.load(os.path.join('assets', 'base_line.png'))
@@ -77,20 +81,26 @@ def draw_menu():
     WIN.blit(SPACE, (0, 0))
     play_text = PLAY_TEXT_FONT.render("PLAY", 1, BLACK)
     leaderboard_text = LEADERBOARD_FONT.render("LEADERBOARD", 1, BLACK)
-    game_name_1 = GAME_OVER_FONT.render("ALIEN", 1, YELLOW)
-    game_name_2 = GAME_OVER_FONT.render("ASSAULT", 1, YELLOW)
+    game_name_1 = GAME_NAME_FONT.render("ALIEN", 1, YELLOW)
+    game_name_2 = GAME_NAME_FONT.render("ASSAULT", 1, YELLOW)
+    quit_text = QUIT_FONT.render("QUIT", 1 , BLACK)
 
     play_base = pygame.Rect(WIDTH // 2 - play_text.get_width() // 2, HEIGHT // 2 - play_text.get_height() // 2, play_text.get_width() + 15,
                          play_text.get_height() - 10)
     leaderboard_base = pygame.Rect(WIDTH // 2 - leaderboard_text.get_width() // 2, HEIGHT // 2 + play_text.get_height(), leaderboard_text.get_width() + 15,
                          leaderboard_text.get_height() - 10)
+    quit_base = pygame.Rect(WIDTH // 2 - quit_text.get_width() // 2, HEIGHT // 2 + (leaderboard_text.get_height()+ play_text.get_height()) +40, quit_text.get_width() + 15,
+                         quit_text.get_height() - 10)
     pygame.draw.rect(WIN, YELLOW, play_base)
     pygame.draw.rect(WIN, YELLOW, leaderboard_base)
+    pygame.draw.rect(WIN, YELLOW, quit_base)
     
-    WIN.blit(game_name_1, (WIDTH // 2 - game_name_1.get_width() // 2 + 15, 50))
-    WIN.blit(game_name_2, (WIDTH // 2 - game_name_2.get_width() // 2 + 15, 200))
+    WIN.blit(game_name_1, (WIDTH // 2 - game_name_1.get_width() // 2 + 15, 30))
+    WIN.blit(game_name_2, (WIDTH // 2 - game_name_2.get_width() // 2 + 15, 180))
     WIN.blit(play_text, (WIDTH // 2 - play_text.get_width() // 2 + 15, HEIGHT // 2 - play_text.get_height() // 2))
     WIN.blit(leaderboard_text, (WIDTH // 2 - leaderboard_text.get_width() // 2 + 15, HEIGHT // 2 + play_text.get_height()))
+    WIN.blit(quit_text, (WIDTH // 2 - quit_text.get_width() // 2 + 15, HEIGHT // 2 + (leaderboard_text.get_height()+ play_text.get_height()) + 40 ))
+
     pygame.display.update()
 
 def draw_window(spaceship, base_line, bullet_list, enemy_ship_list, score):
@@ -135,7 +145,7 @@ def game_over(score):
     score_text = FINAL_SCORE_FONT.render(f"SCORE: {str(score)}", 1, YELLOW)
     WIN.blit(SURFACE, (0, 0))
     WIN.blit(game_over_text,(WIDTH // 2 - game_over_text.get_width() // 2, HEIGHT // 2 - game_over_text.get_height() // 2 - 200))
-    WIN.blit(score_text, (WIDTH // 2 - game_over_text.get_width() // 2 + 150, HEIGHT // 2 - 100))
+    WIN.blit(score_text, (WIDTH // 2 - game_over_text.get_width() // 2 + 100, HEIGHT // 2 - 100))
     pygame.display.update()
 
 
@@ -162,9 +172,14 @@ def enter_name(score):
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
-                    name_entered = True
+                    if entered_name.strip(): # Check if the name is just spaces
+                        name_entered = True
+                    else:
+                        entered_name = '' # Deleting the entered name if it is just spaces
                 elif event.key == pygame.K_BACKSPACE:
                     entered_name = entered_name[:-1]
+                elif event.key == pygame.K_ESCAPE:
+                    pass
                 else:
                     entered_name += event.unicode
 
@@ -207,16 +222,25 @@ def draw_leaderboard():
 
     # Title
     title_text = LEADERBOARD_FONT.render("LEADERBOARD", 1, YELLOW)
-    WIN.blit(title_text, (WIDTH // 2 - title_text.get_width() // 2, 50))
+    WIN.blit(title_text, (WIDTH // 2 - title_text.get_width() // 2, 20))
 
     # Headings
     name_heading = SCORE_FONT.render("NAME", 1, WHITE)
     score_heading = SCORE_FONT.render("SCORE", 1, WHITE)
     date_heading = SCORE_FONT.render("DATE", 1, WHITE)
 
-    WIN.blit(name_heading, (50, 200))
-    WIN.blit(score_heading, (300, 200))
-    WIN.blit(date_heading, (500, 200))
+    # Back Button
+    back_text = BACK_TEXT_FONT.render("BACK", 1, BLACK)
+    back_base = pygame.Rect(WIDTH // 2 - back_text.get_width() // 2, (HEIGHT -60) - back_text.get_height() // 2, back_text.get_width() + 15,
+                            back_text.get_height() - 10)
+    pygame.draw.rect(WIN, YELLOW, back_base)
+    WIN.blit(back_text, (WIDTH // 2 - back_text.get_width() // 2 + 15, (HEIGHT -60) - back_text.get_height() // 2))
+
+
+
+    WIN.blit(name_heading, (30, 140))
+    WIN.blit(score_heading,(280, 140))
+    WIN.blit(date_heading, (480, 140))
 
     # Display the scores
     for i, (name, score, date) in enumerate(scores): # enumarate is for holding the index postion of each tuple,
@@ -227,9 +251,9 @@ def draw_leaderboard():
         score_text = SCORE_FONT.render(f"{score}", 1, WHITE)
         date_text = SCORE_FONT.render(f"{date}", 1, WHITE)
         
-        WIN.blit(name_text, (50, 250 + i * 50))
-        WIN.blit(score_text, (300, 250 + i * 50))
-        WIN.blit(date_text, (500, 250 + i * 50))
+        WIN.blit(name_text, (30, 190 + i * 50))
+        WIN.blit(score_text, (280, 190 + i * 50))
+        WIN.blit(date_text, (480, 190 + i * 50))
 
     pygame.display.update()
 
@@ -240,18 +264,24 @@ def draw_leaderboard():
                 pygame.quit()
             if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 return
-                
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+                if(WIDTH // 2 - back_text.get_width() // 2 <= mouse_x <= WIDTH // 2 + back_text.get_width() // 2 and
+                    (HEIGHT-60) - back_text.get_height() // 2 <= mouse_y <=(HEIGHT-60) + back_text.get_height() // 2):
+                    CLICK_SOUND.play()
+                    return
+
 
 def main():
     score = 0
     bullet_list = []
     enemy_ship_list = []
-    spaceship = pygame.Rect(300, 850, SPACESHIP_WIDTH, SPACESHIP_HEIGHT)
+    spaceship = pygame.Rect(300, HEIGHT - 100, SPACESHIP_WIDTH, SPACESHIP_HEIGHT)
     bullet = pygame.Rect(spaceship.x + spaceship.width // 2 - 3, spaceship.y, 5, 10)
-    base_line = pygame.Rect(0, 750, WIDTH, 5)
+    base_line = pygame.Rect(0, 650, WIDTH, 5)
 
     for i in range(ENEMY_SHIPS_NUM):
-        enemy_ship = EnemyShip(random.randint(0, WIDTH), random.randrange(0, 600, 5), SPACESHIP_WIDTH,
+        enemy_ship = EnemyShip(random.randint(0, WIDTH), random.randrange(0, 450, 5), SPACESHIP_WIDTH,
                                SPACESHIP_HEIGHT)
         enemy_ship_list.append(enemy_ship)
 
@@ -259,13 +289,13 @@ def main():
     run = True
     play_clicked = False
     leaderboard_clicked = False
+    back_clicked = True
 
     while run:
         clock.tick(FPS)
 
         if not play_clicked and not leaderboard_clicked:
             draw_menu()
-
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
@@ -273,14 +303,25 @@ def main():
                     mouse_x, mouse_y = pygame.mouse.get_pos()
                     play_text = PLAY_TEXT_FONT.render("PLAY", 1, WHITE)
                     leaderboard_text = PLAY_TEXT_FONT.render("LEADERBOARD", 1, WHITE)
+                    quit_text = QUIT_FONT.render("QUIT", 1 , BLACK)
+
                     if (WIDTH // 2 - play_text.get_width() // 2 <= mouse_x <= WIDTH // 2 + play_text.get_width() // 2 and
                         HEIGHT // 2 - play_text.get_height() // 2 <= mouse_y <= HEIGHT // 2 + play_text.get_height() // 2):
+                        CLICK_SOUND.play()
                         play_clicked = True
                         break
                     elif (WIDTH // 2 - leaderboard_text.get_width() // 2 <= mouse_x <= WIDTH // 2 + leaderboard_text.get_width() // 2 and
                         HEIGHT // 2 + play_text.get_height() <= mouse_y <= HEIGHT // 2 + play_text.get_height() + leaderboard_text.get_height()):
+                        CLICK_SOUND.play()
                         leaderboard_clicked = True
                         break
+                    elif (WIDTH // 2 - quit_text.get_width() // 2 <= mouse_x <= WIDTH // 2 + quit_text.get_width() // 2 and 
+                        HEIGHT // 2 + (leaderboard_text.get_height()+ play_text.get_height()) +40 <= mouse_y <= HEIGHT // 2 + 
+                        (leaderboard_text.get_height()+ play_text.get_height()) +40 + play_text.get_height()):
+                            CLICK_SOUND.play()
+                            pygame.time.delay(100)
+                            pygame.quit()
+
         elif leaderboard_clicked:
             draw_leaderboard()
             leaderboard_clicked = False  # Reset to allow re-entering the leaderboard menu
@@ -310,15 +351,19 @@ def main():
                 enemy_ship_list.append(enemy_ship)
 
             for enemy_ship in enemy_ship_list:
-                if enemy_ship.colliderect(base_line):
+                if enemy_ship.colliderect(base_line) or (enemy_ship.y + enemy_ship.height) > base_line.y:
                     enemy_ship_list.remove(enemy_ship)
                     ship_x, ship_y = enemy_ship.x, enemy_ship.y
                     WIN.blit(ENEMY_SHIP, (ship_x, ship_y))
                     pygame.display.update()
                     game_over(score)
-                    entered_name = enter_name(score)
-                    save_score(entered_name, score)
-                    run = False
+                    if score != 0:
+                        entered_name = enter_name(score)
+                        save_score(entered_name, score)
+                        run = False
+                    else:
+                        pygame.time.delay(3000)
+                        run = False
                 else:
                     enemy_ship.handle_enemy_ship_movement()
 
