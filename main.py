@@ -19,6 +19,9 @@ MAX_BULLETS = 3
 ENEMY_SHIP_VEL = 5
 ENEMY_SHIP_DOWN_VEL = 60
 ENEMY_SHIPS_NUM = 10
+SCORE_TO_INCREASE_VELOCITY = 5  # Points interval to increase alien velocity
+ENEMY_SHIP_VEL_INCREMENT = 1     # Velocity increase per level
+
 
 YELLOW = (255, 255, 0)
 WHITE = (255, 255, 255)
@@ -103,14 +106,18 @@ def draw_menu():
 
     pygame.display.update()
 
-def draw_window(spaceship, base_line, bullet_list, enemy_ship_list, score):
+def draw_window(spaceship, base_line, bullet_list, enemy_ship_list, score, alien_speed_level):
     score_text = SCORE_FONT.render(f"Score: {str(score)}", 1, YELLOW)
+    speed_text = SCORE_FONT.render(f"Speed Level: {alien_speed_level}", 1, YELLOW)
+    
     WIN.blit(SPACE, (0, 0))
     WIN.blit(SPACESHIP, (spaceship.x, spaceship.y))
     WIN.blit(BASE_LINE, (base_line.x, base_line.y))
-    WIN.blit(score_text, (10, 10))
     
-    for bullet in bullet_list: 
+    WIN.blit(score_text, (10, 10))
+    WIN.blit(speed_text, (WIDTH - speed_text.get_width() - 10, 10))  # Align to the right side
+    
+    for bullet in bullet_list:
         pygame.draw.rect(WIN, YELLOW, bullet)
     
     for enemy_ship in enemy_ship_list:
@@ -122,8 +129,8 @@ def draw_window(spaceship, base_line, bullet_list, enemy_ship_list, score):
                 WIN.blit(EXPLOSION, (enemy_ship.x - 30, enemy_ship.y - 30))
                 enemy_ship_list.remove(enemy_ship)
                 bullet_list.remove(bullet)
-    pygame.display.update()
 
+    pygame.display.update()
 
 def handle_movement(spaceship, keys_pressed):
     if keys_pressed[pygame.K_a] and spaceship.x - VEL > 0:
@@ -274,10 +281,10 @@ def draw_leaderboard():
 
 def main():
     score = 0
+    alien_speed_level = 1  # Start with speed level 1
     bullet_list = []
     enemy_ship_list = []
     spaceship = pygame.Rect(300, HEIGHT - 100, SPACESHIP_WIDTH, SPACESHIP_HEIGHT)
-    bullet = pygame.Rect(spaceship.x + spaceship.width // 2 - 3, spaceship.y, 5, 10)
     base_line = pygame.Rect(0, 650, WIDTH, 5)
 
     for i in range(ENEMY_SHIPS_NUM):
@@ -289,7 +296,6 @@ def main():
     run = True
     play_clicked = False
     leaderboard_clicked = False
-    back_clicked = True
 
     while run:
         clock.tick(FPS)
@@ -339,8 +345,12 @@ def main():
 
                 if event.type == ENEMY_SHIP_HIT:
                     score += 1
+                    if score % SCORE_TO_INCREASE_VELOCITY == 0:
+                        alien_speed_level += 1
+                        global ENEMY_SHIP_VEL
+                        ENEMY_SHIP_VEL += ENEMY_SHIP_VEL_INCREMENT  # Increase alien velocity
 
-            draw_window(spaceship, base_line, bullet_list, enemy_ship_list, score)
+            draw_window(spaceship, base_line, bullet_list, enemy_ship_list, score, alien_speed_level)
             keys_pressed = pygame.key.get_pressed()
             handle_bullet_movement(bullet_list)
             handle_movement(spaceship, keys_pressed)
@@ -353,9 +363,6 @@ def main():
             for enemy_ship in enemy_ship_list:
                 if enemy_ship.colliderect(base_line) or (enemy_ship.y + enemy_ship.height) > base_line.y:
                     enemy_ship_list.remove(enemy_ship)
-                    ship_x, ship_y = enemy_ship.x, enemy_ship.y
-                    WIN.blit(ENEMY_SHIP, (ship_x, ship_y))
-                    pygame.display.update()
                     game_over(score)
                     if score != 0:
                         entered_name = enter_name(score)
